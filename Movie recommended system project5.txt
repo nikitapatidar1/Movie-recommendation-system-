@@ -1,0 +1,232 @@
+import numpy as np
+import pandas as pd
+credits = pd.read_csv(r'C:\Users\patid\Desktop\Python\tmdb_5000_credits.csv')
+movies = pd.read_csv(r'tmdb_5000_movies.csv')
+print(credits)
+print(movies)
+a = movies.merge(credits,on = 'title')
+print(a)
+b = a.head(1)
+print(b)
+c = a.isnull().sum()
+print(c)
+d = a.dropna(inplace = True)
+print(d)
+e = a.duplicated().sum()
+print(e)
+f = a.iloc[0].genres
+print(f)
+import ast
+def convert(obj):
+    L = []
+    for i in ast.literal_eval(obj):
+        L.append(i['name'])
+    return L
+a['genres'] = a['genres'].apply(convert)    
+print(a['genres'])  
+a['keywords'] = a['keywords'].apply(convert)    
+print(a['keywords'])  
+g = a['keywords'].head()
+print(g)
+a['cast'] = a['cast'].apply(convert)    
+print(a['cast'])  
+f=a['crew'][0]
+print(f)
+import ast
+def fetch_director(obj):
+    L =[]
+    for i in ast.literal_eval(obj):
+        L.append(i['name'])
+        break
+    return L
+a['crew'] = a['crew'].apply(fetch_director)
+print(a['crew'])
+a['overview']  =  a['overview'].apply(lambda x:x.split())
+print(a['overview'])
+a['tags'] = a['overview']+a['genres']+a['keywords']+a['crew']+a['cast']
+print(a['tags'])
+new_df = a[['movie_id','title','tags']]
+print(new_df)
+new_df['tags'] = new_df['tags'].apply(lambda x:" ".join(x))
+h = new_df.head()
+print(h)
+import nltk
+from nltk.stem.porter import PorterStemmer
+ps = PorterStemmer()
+def stem(text):
+    y = []
+    for i in text.split():
+        y.append(ps.stem(i))
+    return " ".join(y)
+new_df['tags'] = new_df['tags'].apply(stem)
+print(new_df['tags'][0])
+i = new_df.head()
+print(i)
+from sklearn.feature_extraction.text import CountVectorizer
+cv = CountVectorizer(max_features=5000, stop_words='english')
+print(cv)
+vectors = cv.fit_transform(new_df['tags']).toarray()
+print(vectors)
+'''j = cv.get_feature_names()
+print(j)'''
+from sklearn.metrics.pairwise import cosine_similarity
+similarity = cosine_similarity(vectors)
+k = similarity[2]
+print(k)
+L = sorted(list(enumerate(similarity[0])), reverse = True, key = lambda x:x[1])[1:6]
+print(L)
+def recommend(movie):
+    movie_index = new_df[new_df['title']==movie].index[0]
+    distances = similarity[movie_index]
+    a_list = sorted(list(enumerate(distances)), reverse = True, key = lambda x:x[1])[1:6]
+    for i in a_list:
+        print(new_df.iloc[i[0]].title)
+    return
+m = recommend('Avatar')
+print(m)
+n = recommend('Batman Begins')
+print(n)
+o = recommend('The Dark Knight Rises')
+print(o)
+import pickle
+pickle.dump(new_df,open('movies.pkl','wb'))
+p = new_df['title'].values
+print(p)
+
+
+
+
+
+
+import streamlit as it
+import pickle
+import pandas as pd
+import requests
+
+def fetch_poster(movie_id):
+    response = requests.get('')
+    data = response.json()
+    return" " + data[' ']
+
+def recommend(movie):
+    movie_index = movies[movies['title']==movie].index[0]
+    distances = similarity[movie_index]
+    movies_list = sorted(list(enumerated(distances)), reverse = True, key = lambda x:x[1])[1:6]
+    
+    recommended_movies = []
+    recommended_movies_posters = []
+    for i in movies_list:
+        movie_id = movies.iloc[i[0]].movies_id
+    
+        recommended_movies.append(movies.iloc[i[0]].title)
+        recommended_movies.posters.append(fetch_poster(movie_id))
+        return recommended_movies, recommended_movies.posters
+movies_dict = pickle.load(open(''))
+movies = pd.DataFrame(movies_dict)
+
+
+st.title('Movie Recommended  System')
+similarity = pickle.load(open('similarity.pkl','rb'))
+
+option = st.selectbox(
+'Enter movie name?',
+    movies['title'].value)
+
+    
+if st.button('Recommend'):
+    names,posters = recommend(option)
+    
+    col1,col2,col3,col4,col5 = st.columns(5)
+    with col1:
+        st.text(names[0])
+        st.image(posters[0])
+        
+    with col2:
+        st.text(names[1])
+        st.image(posters[1])
+        
+    with col3:
+        st.text(names[2])
+        st.image(posters[2])
+        
+    with col4:
+        st.text(names[3])
+        st.image(posters[3])
+        
+    with col5:
+        st.text(names[4])
+        st.image(posters[4])
+        
+        
+
+   
+
+    
+
+   
+
+   
+
+')
+    data = response.json
+    return
+
+def recommend(movie):
+    movie_index = movies[movies['title']==movie].index[0]
+    distances = similarity[movie_index]
+    movies_list = sorted(list(enumerated(distances)), reverse = True, key = lambda x:x[1])[1:6]
+    
+    recommended_movies = []
+    recommended_movies_posters = []
+    for i in movies_list:
+        movie_id = movies.iloc[i[0]].movies_id
+    
+        recommended_movies.append(movies.iloc[i[0]].title)
+        recommended_movies.posters.append(fetch_poster(movie_id))
+        return recommended_movies, recommended_movies.posters
+movies_dict = pickle.load(open(''))
+movies = pd.DataFrame(movies_dict)
+
+
+st.title('Movie Recommended  System')
+similarity = pickle.load(open('similarity.pkl','rb'))
+
+option = st.selectbox(
+'Enter movie name?',
+    movies['title'].value)
+
+    
+if st.button('Recommend'):
+    names,posters = recommend(option)
+    
+    col1,col2,col3,col4,col5 = st.columns(5)
+    with col1:
+        st.text(names[0])
+        st.image(posters[0])
+        
+    with col2:
+        st.text(names[1])
+        st.image(posters[1])
+        
+    with col3:
+        st.text(names[2])
+        st.image(posters[2])
+        
+    with col4:
+        st.text(names[3])
+        st.image(posters[3])
+        
+    with col5:
+        st.text(names[4])
+        st.image(posters[4])
+        
+        
+
+   
+
+    
+
+   
+
+   
+
